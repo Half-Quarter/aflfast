@@ -5155,14 +5155,14 @@ static u8 fuzz_one(char** argv) {
    *********************/
 
   orig_perf = perf_score = calculate_score(queue_cur);
-
+  cur_score = orig_perf;
   if (perf_score == 0) goto abandon_entry;
 
   /* Skip right away if -d is given, if it has not been chosen sufficiently
      often to warrant the expensive deterministic stage (fuzz_level), or
      if it has gone through deterministic testing in earlier, resumed runs
      (passed_det). */
-
+  /*
   if (skip_deterministic 
      || ((!queue_cur->passed_det) 
         && perf_score < (
@@ -5171,7 +5171,9 @@ static u8 fuzz_one(char** argv) {
               : HAVOC_MAX_MULT * 100))
      || queue_cur->passed_det)
     goto havoc_stage;
-
+   */
+    if (skip_deterministic || queue_cur->fuzz_level>0 || queue_cur->passed_det)
+        goto havoc_stage;
   /* Skip deterministic fuzzing if exec path checksum puts this out of scope
      for this master instance. */
 
