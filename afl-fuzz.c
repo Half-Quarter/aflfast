@@ -192,7 +192,9 @@ EXP_ST u64 total_crashes,             /* Total number of crashes          */
            bytes_trim_out,            /* Bytes coming outa the trimmer    */
            blocks_eff_total,          /* Blocks subject to effector maps  */
            blocks_eff_select,         /* Blocks selected as fuzzable      */
-           cur_score;
+           cur_score,
+           cur_si,
+           cur_fi;
 
 static u32 subseq_tmouts;             /* Number of timeouts in a row      */
 
@@ -3152,7 +3154,6 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     q = q->next;
 
   }
-
   if (fault == crash_mode) {
 
     /* Keep only if there are new bits in the map, add to queue for
@@ -4130,8 +4131,8 @@ static void show_stats(void) {
   SAYF("    map density : %s%-21s " bSTG bV "\n", t_byte_ratio > 70 ? cLRD : 
        ((t_bytes < 200 && !dumb_mode) ? cPIN : cRST), tmp);
 
-  sprintf(tmp, "%f   ", DF(cur_score));
-  SAYF(bV bSTOP "  cur power : " cRST "%-17s " bSTG bV, tmp);
+  sprintf(tmp, "%s (%s) (%s)   ", DF(cur_score),DI(cur_fi),DI(cur_si));
+  SAYF(bV bSTOP "  cur power(fi)(si) : " cRST "%-17s " bSTG bV, tmp);
 
   sprintf(tmp, "%0.02f bits/tuple",
           t_bytes ? (((double)t_bits) / t_bytes) : 0);
@@ -4803,6 +4804,8 @@ static u32 calculate_score(struct queue_entry* q) {
          factor = ((u32) (1 << q->fuzz_level)) / (fuzz == 0 ? 1 : fuzz); 
       } else
         factor = MAX_FACTOR / (fuzz == 0 ? 1 : next_p2 (fuzz));
+      cur_si=fuzz;
+      cur_fi=q->fuzz_level;
       break;
 
     case LIN:
@@ -6701,6 +6704,7 @@ abandon_entry:
   }
 
   queue_cur->fuzz_level++;
+
 
   munmap(orig_in, queue_cur->len);
 
